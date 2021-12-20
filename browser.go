@@ -35,8 +35,8 @@ func screenLink(link string) (buf []byte, err error) {
 	opts := make([]chromedp.ExecAllocatorOption, 0)
 	opts = append(opts, chromedp.DefaultExecAllocatorOptions[:]...)
 
-	if os.Getenv("GOOGLE_CHROME_SHIM") != "" {
-		opts = append(opts, chromedp.ExecPath(os.Getenv("GOOGLE_CHROME_SHIM")))
+	if p, ok := os.LookupEnv("GOOGLE_CHROME_SHIM"); ok {
+		opts = append(opts, chromedp.ExecPath(p))
 	}
 
 	allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
