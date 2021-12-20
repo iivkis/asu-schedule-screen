@@ -14,23 +14,36 @@ const baseURL = "https://www.asu.ru/timetable"
 var customize string
 
 func init() {
-	f, err := os.OpenFile("custom.js", os.O_CREATE|os.O_RDONLY, 0o777)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
+	//customize js
+	{
+		f, err := os.OpenFile("custom.js", os.O_CREATE|os.O_RDONLY, 0o777)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
 
-	codeJS, err := ioutil.ReadAll(f)
-	if err != nil {
-		panic(err)
-	}
+		codeJS, err := ioutil.ReadAll(f)
+		if err != nil {
+			panic(err)
+		}
 
-	customize = fmt.Sprintf("const f = () => {%s}; f();", string(codeJS))
+		customize = fmt.Sprintf("const f = () => {%s}; f();", string(codeJS))
+	}
 }
 
 func screenLink(link string) (buf []byte, err error) {
-	ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
+	opts := make([]chromedp.ExecAllocatorOption, 0)
+	opts = append(opts, chromedp.DefaultExecAllocatorOptions[:]...)
+
+	if os.Getenv("GOOGLE_CHROME_SHIM") != "" {
+		opts = append(opts, chromedp.ExecPath(os.Getenv("GOOGLE_CHROME_SHIM")))
+	}
+
+	allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel1()
+
+	ctx, cancel2 := chromedp.NewContext(allocCtx)
+	defer cancel2()
 
 	err = chromedp.Run(ctx, chromedp.Tasks{
 		chromedp.Navigate(fmt.Sprintf("%s/%s", baseURL, link)),
@@ -42,7 +55,7 @@ func screenLink(link string) (buf []byte, err error) {
 		return
 	}
 
-	// err = os.WriteFile("last_screen.png", buf, 0o777)
+	err = os.WriteFile("last_screen.png", buf, 0o777)
 
 	return buf, err
 }
