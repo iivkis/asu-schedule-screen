@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/chromedp/chromedp"
 )
@@ -41,11 +42,14 @@ func screenLink(link string) (buf []byte, err error) {
 		opts = append(opts, chromedp.ExecPath(p))
 	}
 
-	allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
-	defer cancel1()
+	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel()
 
-	ctx, cancel2 := chromedp.NewContext(allocCtx)
-	defer cancel2()
+	ctx, cancel := chromedp.NewContext(allocCtx)
+	defer cancel()
+
+	ctx, cancel = context.WithTimeout(ctx, time.Second*6)
+	defer cancel()
 
 	err = chromedp.Run(ctx, chromedp.Tasks{
 		chromedp.Navigate(fmt.Sprintf("%s/%s", baseURL, link)),
