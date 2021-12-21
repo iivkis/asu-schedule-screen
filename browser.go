@@ -61,7 +61,7 @@ func screenLink(link string) (buf []byte, err error) {
 		return
 	}
 
-	err = os.WriteFile("last_screen.png", buf, 0o777)
+	// err = os.WriteFile("last_screen.png", buf, 0o777)
 
 	return buf, err
 }
