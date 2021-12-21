@@ -48,7 +48,7 @@ func screenLink(link string) (buf []byte, err error) {
 	ctx, cancel := chromedp.NewContext(allocCtx)
 	defer cancel()
 
-	ctx, cancel = context.WithTimeout(ctx, time.Second*6)
+	ctx, cancel = context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
 	err = chromedp.Run(ctx, chromedp.Tasks{
