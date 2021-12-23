@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +15,10 @@ func main() {
 	router.Use(gin.Logger(), gin.Recovery())
 
 	router.GET("/screenshot", func(c *gin.Context) {
-		photo, err := screenLink(c.Query("link"))
+		link := c.Query("link")
+		link = strings.Replace(link, "*", "&", 1)
+
+		photo, err := screenLink(link)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),

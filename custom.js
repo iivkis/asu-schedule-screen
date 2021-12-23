@@ -10,7 +10,7 @@ const helper = {
 helper.customize("#page-content > div > div.l-content-main.proto > div:nth-child(10)", "display", "none");
 
 //lectutets
-helper.customize("#page-content > div > div.l-content-main.proto > table", "display", "none");
+helper.customize("#page-content > div > div.l-content-main.proto > table.no_padding", "display", "none");
 helper.customize("#page-content > div > div.l-content-main.proto > div.box2.t_gray_light.t_small.margin_top_x", "display", "none");
 helper.customize("#page-content > div > div.l-content-main.proto > div.box2.t_gray_light.t_small.margin_top", "display", "none");
 

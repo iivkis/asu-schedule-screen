@@ -63,6 +63,8 @@ func init() {
 }
 
 func screenLink(link string) (buf []byte, err error) {
+
+	fmt.Println(link)
 	browser.Mx.Lock()
 	defer browser.Mx.Unlock()
 
