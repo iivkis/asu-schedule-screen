@@ -15,13 +15,13 @@ const baseURL = "https://www.asu.ru/timetable"
 
 var customizeDevJS string
 
-var (
-	browserCtx context.Context
-	browserMX  sync.Mutex
-)
+var browser struct {
+	Ctx context.Context
+	Mx  sync.Mutex
+}
 
 func init() {
-	//customize js
+	//load customize js
 	{
 		f, err := os.OpenFile("custom.js", os.O_CREATE|os.O_RDONLY, 0o777)
 		if err != nil {
@@ -40,7 +40,7 @@ func init() {
 	//create browser context
 	{
 		opts := make([]chromedp.ExecAllocatorOption, 0)
-		opts = append(opts, chromedp.DefaultExecAllocatorOptions[:]...)
+		// opts = append(opts, chromedp.DefaultExecAllocatorOptions[:]...)
 
 		if p, ok := os.LookupEnv("GOOGLE_CHROME_SHIM"); ok {
 			opts = append(opts, chromedp.ExecPath(p))
@@ -48,7 +48,7 @@ func init() {
 
 		allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
 		ctx, cancel2 := chromedp.NewContext(allocCtx)
-		browserCtx = ctx
+		browser.Ctx = ctx
 
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
@@ -63,13 +63,13 @@ func init() {
 }
 
 func screenLink(link string) (buf []byte, err error) {
-	browserMX.Lock()
-	defer browserMX.Unlock()
+	browser.Mx.Lock()
+	defer browser.Mx.Unlock()
 
-	err = chromedp.Run(browserCtx, chromedp.Tasks{
+	err = chromedp.Run(browser.Ctx, chromedp.Tasks{
 		chromedp.Navigate(fmt.Sprintf("%s/%s", baseURL, link)),
 		chromedp.Evaluate(customizeDevJS, nil),
-		chromedp.Screenshot("div.l-content-main", &buf, chromedp.NodeVisible),
+		chromedp.Screenshot(".l-content-main", &buf, chromedp.NodeVisible),
 	})
 
 	if err != nil {

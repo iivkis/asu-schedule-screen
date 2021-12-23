@@ -13,3 +13,6 @@ helper.customize("#page-content > div > div.l-content-main.proto > div:nth-child
 helper.customize("#page-content > div > div.l-content-main.proto > table", "display", "none");
 helper.customize("#page-content > div > div.l-content-main.proto > div.box2.t_gray_light.t_small.margin_top_x", "display", "none");
 helper.customize("#page-content > div > div.l-content-main.proto > div.box2.t_gray_light.t_small.margin_top", "display", "none");
+
+if (!document.querySelector(".l-content-main"))
+    document.body.classList.add(".l-content-main")
