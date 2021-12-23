@@ -5,14 +5,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"time"
+	"os/signal"
+	"sync"
 
 	"github.com/chromedp/chromedp"
 )
 
 const baseURL = "https://www.asu.ru/timetable"
 
-var customize string
+var customizeDevJS string
+
+var (
+	browserCtx context.Context
+	browserMX  sync.Mutex
+)
 
 func init() {
 	//customize js
@@ -28,30 +34,41 @@ func init() {
 			panic(err)
 		}
 
-		customize = fmt.Sprintf("const f = () => {%s}; f();", string(codeJS))
+		customizeDevJS = fmt.Sprintf("const f = () => {%s}; f();", string(codeJS))
+	}
+
+	//create browser context
+	{
+		opts := make([]chromedp.ExecAllocatorOption, 0)
+		opts = append(opts, chromedp.DefaultExecAllocatorOptions[:]...)
+
+		if p, ok := os.LookupEnv("GOOGLE_CHROME_SHIM"); ok {
+			opts = append(opts, chromedp.ExecPath(p))
+		}
+
+		allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
+		ctx, cancel2 := chromedp.NewContext(allocCtx)
+		browserCtx = ctx
+
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+
+		go func() {
+			<-c
+			cancel1()
+			cancel2()
+			os.Exit(0)
+		}()
 	}
 }
 
 func screenLink(link string) (buf []byte, err error) {
-	opts := make([]chromedp.ExecAllocatorOption, 0)
-	// opts = append(opts, chromedp.DefaultExecAllocatorOptions[:]...)
+	browserMX.Lock()
+	defer browserMX.Unlock()
 
-	if p, ok := os.LookupEnv("GOOGLE_CHROME_SHIM"); ok {
-		opts = append(opts, chromedp.ExecPath(p))
-	}
-
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
-	defer cancel()
-
-	ctx, cancel := chromedp.NewContext(allocCtx)
-	defer cancel()
-
-	ctx, cancel = context.WithTimeout(ctx, time.Second*6)
-	defer cancel()
-
-	err = chromedp.Run(ctx, chromedp.Tasks{
+	err = chromedp.Run(browserCtx, chromedp.Tasks{
 		chromedp.Navigate(fmt.Sprintf("%s/%s", baseURL, link)),
-		chromedp.Evaluate(customize, nil),
+		chromedp.Evaluate(customizeDevJS, nil),
 		chromedp.Screenshot("div.l-content-main", &buf, chromedp.NodeVisible),
 	})
 
@@ -59,7 +76,6 @@ func screenLink(link string) (buf []byte, err error) {
 		return
 	}
 
-	// err = os.WriteFile("last_screen.png", buf, 0o777)
-
+	err = os.WriteFile("last_screen.png", buf, 0o777)
 	return buf, err
 }
