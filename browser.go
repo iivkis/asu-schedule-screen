@@ -40,7 +40,7 @@ func init() {
 	//create browser context
 	{
 		opts := make([]chromedp.ExecAllocatorOption, 0)
-		// opts = append(opts, chromedp.DefaultExecAllocatorOptions[:]...)
+		opts = append(opts, chromedp.DefaultExecAllocatorOptions[:]...)
 
 		if p, ok := os.LookupEnv("GOOGLE_CHROME_SHIM"); ok {
 			opts = append(opts, chromedp.ExecPath(p))
