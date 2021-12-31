@@ -39,15 +39,20 @@ func init() {
 
 	//create browser context
 	{
-		opts := make([]chromedp.ExecAllocatorOption, 0)
+		opts := []chromedp.ExecAllocatorOption{}
 		opts = append(opts, chromedp.DefaultExecAllocatorOptions[:]...)
 
 		if p, ok := os.LookupEnv("GOOGLE_CHROME_SHIM"); ok {
 			opts = append(opts, chromedp.ExecPath(p))
 		}
 
-		allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
-		ctx, cancel2 := chromedp.NewContext(allocCtx)
+		var cancels []context.CancelFunc
+		ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+		cancels = append(cancels, cancel)
+
+		ctx, cancel = chromedp.NewContext(ctx)
+		cancels = append(cancels, cancel)
+
 		browser.Ctx = ctx
 
 		c := make(chan os.Signal, 1)
@@ -55,16 +60,15 @@ func init() {
 
 		go func() {
 			<-c
-			cancel1()
-			cancel2()
+			for _, cancel := range cancels {
+				cancel()
+			}
 			os.Exit(0)
 		}()
 	}
 }
 
 func screenLink(link string) (buf []byte, err error) {
-
-	fmt.Println(link)
 	browser.Mx.Lock()
 	defer browser.Mx.Unlock()
 
