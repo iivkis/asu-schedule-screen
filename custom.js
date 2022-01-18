@@ -16,6 +16,7 @@ if (!document.querySelector(".l-content-main"))
 //скрываем лишние элементы
 if (helper.isLocation(/students/ig)) {
     helper.customize("#page-content > div > div.l-content-main.proto > div.t_small:nth-child(9)", "display", "none");
+    helper.customize("#page-content > div > div.l-content-main.proto > div.t_small:nth-child(10)", "display", "none");
     helper.customize("#page-content > div > div.l-content-main.proto > div.t_small:nth-child(11)", "display", "none");
     helper.customize("#page-content > div > div.l-content-main.proto > div.box2.t_gray_light.t_small.margin_top_x", "display", "none")
 }
